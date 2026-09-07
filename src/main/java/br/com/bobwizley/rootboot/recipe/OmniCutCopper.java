@@ -20,9 +20,13 @@ import java.util.Optional;
  * gap the reference fills and vanilla does not (docs/FEATURES.md).
  *
  * <p>Recovery gives back one unit, the reference's "vanilla price" figure: each of these products costs one
- * cut copper in the stonecutter, and a slab costs half of one, so a pair of them rebuilds a whole. No
- * product cut here is recoverable, which is what keeps a generous yield like the 24 bars from becoming a
- * material multiplier.
+ * cut copper in the stonecutter, and a slab costs half of one, so a pair of them rebuilds a whole.
+ *
+ * <p>"Vanilla price" names the reference's calibration, not an exact cost match. Measured against what the
+ * crafting table charges, bars and lightning rods come out even, chain and door are slightly cheap, and the
+ * trapdoor is far cheaper: four of them cost sixteen ingots on the bench and one block here. That is a
+ * deliberate discount, not a loop — no product cut here is recoverable anywhere in RootBoot, so none of it
+ * can be turned back into material.
  */
 final class OmniCutCopper {
 

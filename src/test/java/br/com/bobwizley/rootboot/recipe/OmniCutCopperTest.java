@@ -119,7 +119,9 @@ class OmniCutCopperTest {
         assertEquals(List.of(), repeated, "the cut copper family belongs to vanilla");
     }
 
-    // Cutting a block into 24 bars and letting a bar buy a block back would multiply copper without limit.
+    // The trapdoor is cut at nearly twice its bench price, so letting one buy material back would multiply
+    // copper without limit. This guards the copper slice only; a mod-wide guard would have to cost every
+    // item, since a recipe consuming another's output is normal and not by itself a multiplier.
     @Test
     void noProductCutHereIsAlsoRecoverable() {
         Set<String> cut =
