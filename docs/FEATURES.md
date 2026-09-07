@@ -75,17 +75,17 @@ Recuperação de material base a partir de gear. **Output sempre 1 unidade** (re
 
 ## OmniCut
 
-Woodcutting / stonecutting / recycling. Preço "vanilla" preservado (calibragem pré-calculada do ref). ~409 receitas no ref; na 26.2 reimplementamos só o que **não** é vanilla. Pacote **parcialmente** implementado: faltam as 40 conversões de corte de cobre da issue #32 (ver abaixo).
+Woodcutting / stonecutting / recycling. Preço "vanilla" preservado (calibragem pré-calculada do ref). ~409 receitas no ref; na 26.2 reimplementamos só o que **não** é vanilla. Pacote **completo**.
 
 - ✅ **Wood cutting** (stonecutter) — log/wood → 15 produtos: stairs(×4), slab(×8), fence, fence_gate, door, trapdoor, sign, boat, planks, stick, wood, strip_log, strip_wood, pressure_plate, button(×4). 11 tipos de madeira. Aceita log/stripped_log/wood/stripped_wood como input.
 - ✅ **Wood recycling** (stonecutter) — produtos de madeira → planks/sticks.
+- ✅ **Copper cutting** (stonecutter) — 40 receitas: bloco de cobre do estado → `copper_bars` (24), `copper_chain` (8), `lightning_rod` (3), `copper_door` (5) e `copper_trapdoor` (4), nos 8 estados de oxidação. São as cinco famílias que a vanilla 26.2 **não** corta; `cut_copper`/stairs/slab/chiseled/grate ficam com a vanilla. Nenhum desses produtos é reciclável no RootBoot, então o rendimento generoso das barras não vira multiplicador de material.
 - ✅ **Copper recycling** (stonecutter uncut + bancada unslab) — 8 estados de oxidação × (stairs/chiseled/grate → `cut_copper`) + (2 slabs → `cut_copper`).
 - ✅ **Resolvido — Rock cutting não sobrou nada:** o ref declara seus overlays por `pack_format`, e na 26.2 (formato 107) o `1.21.2-1.21.11` (máximo 94) não se aplica — junto com ele saem os cortes diretos de deepslate e o `polished_blackstone_button`. Os três overlays aplicáveis são `1.21.2-current`, `1.21.9-current` e `26.2-current`; a camada base do pack continua existindo, mas seus arquivos estão sob `data/meenimc/recipes/` (plural), pasta que versões modernas não leem, então seu conteúdo é ignorado. O único `rock/cut` que a 26.2 ainda lê é `stone_button`, cedido ao More-Buttons. **Zero receitas de rock cutting.**
 - ✅ **Stone recycling** (stonecutter uncut) — 30 receitas: produtos de pedra → bloco base (inclui smooth/cracked → base). `deepslate → cobbled_deepslate` foi removido da lista porque a vanilla já corta. Pressure plates devolvem 2; todo o resto devolve 1.
 - ✅ **Slab reassembly** (unslab, bancada) — 2 slabs lado a lado → bloco. Rock (44) + copper (8) + wood.
 - ✅ **Pedras novas 26.2** — cinnabar e sulfur entram pelo overlay `26.2-current` do ref, que define uncut (2) + unslab (6); não há `cut` para elas no ref, e a vanilla já corta as duas famílias.
 - ⚠️ **Divergência do ref — botão não recicla:** o ref corta botão 1:1 e por isso pode reciclá-lo de volta. O RootBoot é generoso (4 na bancada, 6 no stonecutter), então devolver material a partir de um botão multiplicaria recurso sem limite. Nenhuma receita do RootBoot consome botão — nem a de pedra (`stone_button`/`polished_blackstone_button`), nem a de madeira, que perdeu o botão das recuperações de `planks`/`stairs`/`slab`/`stick`.
-- 🔧 **Copper cutting — pendente na issue #32:** a premissa "sem cut de cobre porque a vanilla já corta" só vale para `cut_copper`/stairs/slab/chiseled/grate. `copper_bars` (24), `copper_chain` (8), `lightning_rod` (3), `copper_door` (5) e `copper_trapdoor` (4) **não** têm stonecutting vanilla na 26.2 e o ref os oferece nos 8 estados de oxidação — 40 conversões efetivas que o RootBoot ainda não entrega. A issue #7 pedia explicitamente "sem duplicar o cut vanilla" e foi cumprida à risca; corrigir a premissa é escopo da #32.
 - **Notas:** reciclagem é só stonecutter (README menciona bancada, mas os dados não têm). Botões de madeira do OmniCut (stonecutter, log→4) coexistem com os do More-Buttons (bancada, planks→4) — ids/tipos distintos, sem conflito.
 
 ---
