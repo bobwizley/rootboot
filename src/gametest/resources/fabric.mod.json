@@ -10,6 +10,7 @@
       "br.com.bobwizley.rootboot.feature.deathitemprotection.DeathItemProtectionGameTests",
       "br.com.bobwizley.rootboot.feature.halfhealthbabies.HalfHealthBabiesGameTests",
       "br.com.bobwizley.rootboot.feature.homingexperienceorb.HomingExperienceOrbGameTests",
+      "br.com.bobwizley.rootboot.feature.majoreventdiscovery.MajorEventDiscoveryGameTests",
       "br.com.bobwizley.rootboot.feature.heavyfoot.HeavyfootGameTests",
       "br.com.bobwizley.rootboot.feature.lightfoot.LightfootGameTests"
     ]

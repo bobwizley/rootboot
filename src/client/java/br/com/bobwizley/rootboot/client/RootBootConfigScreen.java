@@ -15,6 +15,7 @@ import br.com.bobwizley.rootboot.feature.heavyfoot.HeavyfootFeature;
 import br.com.bobwizley.rootboot.feature.homingexperienceorb.HomingExperienceOrbFeature;
 import br.com.bobwizley.rootboot.feature.levelmilestone.LevelMilestoneFeature;
 import br.com.bobwizley.rootboot.feature.lightfoot.LightfootFeature;
+import br.com.bobwizley.rootboot.feature.majoreventdiscovery.MajorEventDiscoveryFeature;
 import br.com.bobwizley.rootboot.feature.timeoffset.TimeOffsetFeature;
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
@@ -97,6 +98,14 @@ public final class RootBootConfigScreen {
                 .setDefaultValue(true)
                 .setTooltip(Component.translatable("option.rootboot.biome_discovery.tooltip"))
                 .setSaveConsumer(value -> config.setEnabled(BiomeDiscoveryFeature.ID, value))
+                .build());
+
+        general.addEntry(entries.startBooleanToggle(
+                        Component.translatable("option.rootboot.major_event_discovery"),
+                        config.isEnabled(MajorEventDiscoveryFeature.ID))
+                .setDefaultValue(true)
+                .setTooltip(Component.translatable("option.rootboot.major_event_discovery.tooltip"))
+                .setSaveConsumer(value -> config.setEnabled(MajorEventDiscoveryFeature.ID, value))
                 .build());
 
         general.addEntry(entries.startBooleanToggle(
