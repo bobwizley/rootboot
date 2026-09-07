@@ -1,6 +1,7 @@
 package br.com.bobwizley.rootboot.feature.majoreventdiscovery;
 
 import br.com.bobwizley.rootboot.feature.Feature;
+import br.com.bobwizley.rootboot.feature.discovery.DiscoveryTitle;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -28,6 +29,10 @@ public final class MajorEventDiscoveryFeature implements Feature {
 
     static final double WITHER_RADIUS = 64.0;
 
+    private static final int FADE_IN = 20;
+    private static final int STAY = 100;
+    private static final int FADE_OUT = 40;
+
     @Override
     public String id() {
         return ID;
@@ -45,17 +50,20 @@ public final class MajorEventDiscoveryFeature implements Feature {
     static void discover(MinecraftServer server, ServerPlayer player) {
         MajorEventDiscoveryState state = state(server);
         for (MajorEvent event : MajorEvent.values()) {
-            if (state.discovered(player.getUUID(), event)) {
+            if (state.discovered(player.getUUID(), event) || !happening(event, player)) {
                 continue;
             }
-            if (happening(event, player)) {
+            if (DiscoveryTitle.claim(player, FADE_IN + STAY + FADE_OUT)) {
                 state.discover(player.getUUID(), event);
                 present(player, event);
             }
+            // Whether the slot was taken or was already busy, the remaining event has to wait for a
+            // later check: recording one the player never saw would silence it forever.
+            return;
         }
     }
 
-    private static boolean happening(MajorEvent event, ServerPlayer player) {
+    static boolean happening(MajorEvent event, ServerPlayer player) {
         return switch (event) {
             case END -> Level.END.equals(player.level().dimension());
             case WITHER -> nearWither(player);
@@ -72,7 +80,7 @@ public final class MajorEventDiscoveryFeature implements Feature {
     }
 
     private static void present(ServerPlayer player, MajorEvent event) {
-        player.connection.send(new ClientboundSetTitlesAnimationPacket(20, 100, 40));
+        player.connection.send(new ClientboundSetTitlesAnimationPacket(FADE_IN, STAY, FADE_OUT));
         player.connection.send(new ClientboundSetTitleTextPacket(
                 Component.translatable(event.titleKey())
                         .withStyle(Style.EMPTY.withColor(event.color()).withBold(true))));

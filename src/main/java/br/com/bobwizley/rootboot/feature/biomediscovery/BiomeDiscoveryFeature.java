@@ -1,6 +1,7 @@
 package br.com.bobwizley.rootboot.feature.biomediscovery;
 
 import br.com.bobwizley.rootboot.feature.Feature;
+import br.com.bobwizley.rootboot.feature.discovery.DiscoveryTitle;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -29,10 +30,16 @@ import net.minecraft.world.level.biome.Biome;
  * Announces the first visit to each registered biome for each player. Join and reconnect are
  * checked immediately; subsequent checks happen only after the player changes block or dimension.
  * Discoveries are permanent for the world and are never rebased on reconnect or feature re-enable.
+ * A biome is recorded only once its title can actually be shown, so one that comes up while
+ * another discovery is still on screen waits for a later check.
  */
 public final class BiomeDiscoveryFeature implements Feature {
 
     public static final String ID = "biome_discovery";
+
+    private static final int FADE_IN = 20;
+    private static final int STAY = 95;
+    private static final int FADE_OUT = 20;
 
     private final Map<UUID, PlayerLocation> locations = new HashMap<>();
 
@@ -66,13 +73,18 @@ public final class BiomeDiscoveryFeature implements Feature {
     }
 
     private static void discover(MinecraftServer server, ServerPlayer player, Identifier biomeId) {
-        if (state(server).discover(player.getUUID(), biomeId)) {
+        BiomeDiscoveryState state = state(server);
+        if (state.discovered(player.getUUID(), biomeId)) {
+            return;
+        }
+        if (DiscoveryTitle.claim(player, FADE_IN + STAY + FADE_OUT)) {
+            state.discover(player.getUUID(), biomeId);
             present(player, biomeId);
         }
     }
 
     private static void present(ServerPlayer player, Identifier biomeId) {
-        player.connection.send(new ClientboundSetTitlesAnimationPacket(20, 95, 20));
+        player.connection.send(new ClientboundSetTitlesAnimationPacket(FADE_IN, STAY, FADE_OUT));
         player.connection.send(new ClientboundSetTitleTextPacket(Component.empty()));
         player.connection.send(new ClientboundSetSubtitleTextPacket(
                 BiomeDisplayName.component(biomeId).withStyle(Style.EMPTY.withColor(0xFFFF55))));

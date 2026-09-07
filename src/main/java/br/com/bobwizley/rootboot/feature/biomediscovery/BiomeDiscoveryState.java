@@ -39,6 +39,10 @@ public final class BiomeDiscoveryState extends SavedData {
         return new BiomeDiscoveryState(new HashMap<>());
     }
 
+    public boolean discovered(UUID playerId, Identifier biomeId) {
+        return discoveries.getOrDefault(playerId, Set.of()).contains(biomeId);
+    }
+
     public boolean discover(UUID playerId, Identifier biomeId) {
         boolean discovered = discoveries.computeIfAbsent(playerId, ignored -> new HashSet<>()).add(biomeId);
         if (discovered) {

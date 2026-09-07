@@ -1,5 +1,6 @@
 package br.com.bobwizley.rootboot.feature.majoreventdiscovery;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -20,6 +21,11 @@ class MajorEventDiscoveryFeatureTest {
         UUID playerId = UUID.randomUUID();
 
         assertTrue(registry.registerEnabled(config).isEmpty());
+        assertFalse(state.discovered(playerId, MajorEvent.END));
+
+        config.setEnabled(MajorEventDiscoveryFeature.ID, true);
+
+        assertEquals(List.of(MajorEventDiscoveryFeature.ID), registry.registerEnabled(config));
         assertFalse(state.discovered(playerId, MajorEvent.END));
     }
 }
