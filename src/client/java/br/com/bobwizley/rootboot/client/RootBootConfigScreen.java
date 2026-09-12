@@ -18,6 +18,7 @@ import br.com.bobwizley.rootboot.feature.levelmilestone.LevelMilestoneFeature;
 import br.com.bobwizley.rootboot.feature.lightfoot.LightfootFeature;
 import br.com.bobwizley.rootboot.feature.majoreventdiscovery.MajorEventDiscoveryFeature;
 import br.com.bobwizley.rootboot.feature.timeoffset.TimeOffsetFeature;
+import br.com.bobwizley.rootboot.feature.trimmedarmoredpiglins.TrimmedArmoredPiglinsFeature;
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
@@ -123,6 +124,16 @@ public final class RootBootConfigScreen {
                 .setDefaultValue(true)
                 .setTooltip(Component.translatable("option.rootboot.half_health_babies.tooltip"))
                 .setSaveConsumer(value -> config.setEnabled(HalfHealthBabiesFeature.ID, value))
+                .build());
+
+        general.addEntry(entries.startBooleanToggle(
+                        Component.translatable("option.rootboot.trimmed_armored_piglins"),
+                        config.isEnabled(TrimmedArmoredPiglinsFeature.ID))
+                .setDefaultValue(true)
+                .setTooltip(Component.translatable(
+                        "option.rootboot.trimmed_armored_piglins.tooltip"))
+                .setSaveConsumer(value ->
+                        config.setEnabled(TrimmedArmoredPiglinsFeature.ID, value))
                 .build());
 
         general.addEntry(entries.startBooleanToggle(

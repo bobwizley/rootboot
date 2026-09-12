@@ -8,6 +8,7 @@
     "FarmlandBlockMixin",
     "ItemEntityMixin",
     "LivingEntityMixin",
+    "PiglinMixin",
     "PlayerMixin"
   ],
   "injectors": {

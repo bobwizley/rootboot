@@ -22,6 +22,8 @@
   "option.rootboot.major_event_discovery.tooltip": "Shows a local title the first time you enter the End and the first time you come within 64 blocks of any Wither. Each discovery is recorded once per player and never repeats.",
   "option.rootboot.half_health_babies": "Half-health Babies",
   "option.rootboot.half_health_babies.tooltip": "Halves the effective max health of any baby mob, composing with modifiers from other mods. Disabling it restores the full max health of existing babies as they are loaded.",
+  "option.rootboot.trimmed_armored_piglins": "Trimmed Armored Piglins",
+  "option.rootboot.trimmed_armored_piglins.tooltip": "Gives each armor piece a piglin is born wearing a chance of coming out trimmed: 25% outside bastions and 50% inside them, rolled once per piece at spawn. Piglin brutes and unarmored piglins are never trimmed, and piglins a world already has are left alone.",
   "option.rootboot.heavyfoot": "Heavyfoot",
   "option.rootboot.heavyfoot.tooltip": "Enables the Heavyfoot effect on enchanted boots.",
   "option.rootboot.heavyfoot_radius": "Heavyfoot Radius",
