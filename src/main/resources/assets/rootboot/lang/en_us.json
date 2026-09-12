@@ -14,6 +14,8 @@
   "option.rootboot.crops_experience.tooltip": "Harvesting a fully grown crop without Silk Touch has a chance to drop one experience point: 75% for wheat, carrots, potatoes, beetroot, cocoa and nether wart, 100% for melon and pumpkin. Fortune changes nothing.",
   "option.rootboot.death_item_protection": "Death Items Don't Despawn",
   "option.rootboot.death_item_protection.tooltip": "Prevents items dropped on death from despawning over time. They remain vulnerable to fire, lava, explosions, cacti, the void, and other hazards.",
+  "option.rootboot.death_stats": "Death Stats",
+  "option.rootboot.death_stats.tooltip": "Announces every death to everyone online with the time the player survived since their previous death and their total death count, taken from the vanilla statistic. The survival time advances only while the player is connected and alive.",
   "option.rootboot.biome_discovery": "Biome Discovery",
   "option.rootboot.biome_discovery.tooltip": "Shows a local title the first time you enter each vanilla or modded biome.",
   "option.rootboot.major_event_discovery": "Major Event Discovery",
@@ -46,5 +48,7 @@
   "message.rootboot.day_announcement.typing.empty": "— —",
   "message.rootboot.day_announcement.typing.d": "— D —",
   "message.rootboot.day_announcement.typing.da": "— DA —",
-  "message.rootboot.day_announcement.typing.day": "— DAY —"
+  "message.rootboot.day_announcement.typing.day": "— DAY —",
+  "message.rootboot.death_stats": "%s survived %s since their last death and now has a total of %s deaths",
+  "message.rootboot.death_stats.first": "%s survived %s since spawning into the world and now has a total of %s death"
 }

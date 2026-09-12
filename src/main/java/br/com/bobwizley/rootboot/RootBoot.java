@@ -7,6 +7,7 @@ import br.com.bobwizley.rootboot.feature.biomediscovery.BiomeDiscoveryFeature;
 import br.com.bobwizley.rootboot.feature.cropsexperience.CropsExperienceFeature;
 import br.com.bobwizley.rootboot.feature.dayannouncement.DayAnnouncementFeature;
 import br.com.bobwizley.rootboot.feature.deathitemprotection.DeathItemProtectionFeature;
+import br.com.bobwizley.rootboot.feature.deathstats.DeathStatsFeature;
 import br.com.bobwizley.rootboot.feature.halfhealthbabies.HalfHealthBabies;
 import br.com.bobwizley.rootboot.feature.halfhealthbabies.HalfHealthBabiesFeature;
 import br.com.bobwizley.rootboot.feature.homingexperienceorb.HomingExperienceOrbFeature;
@@ -57,6 +58,7 @@ public final class RootBoot implements ModInitializer {
                 new HomingExperienceOrbFeature(),
                 new CropsExperienceFeature(),
                 new DeathItemProtectionFeature(),
+                new DeathStatsFeature(),
                 new BiomeDiscoveryFeature(),
                 new MajorEventDiscoveryFeature(),
                 new HalfHealthBabiesFeature(),

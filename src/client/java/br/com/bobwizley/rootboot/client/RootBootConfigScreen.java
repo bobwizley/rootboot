@@ -10,6 +10,7 @@ import br.com.bobwizley.rootboot.feature.biomediscovery.BiomeDiscoveryFeature;
 import br.com.bobwizley.rootboot.feature.cropsexperience.CropsExperienceFeature;
 import br.com.bobwizley.rootboot.feature.dayannouncement.DayAnnouncementFeature;
 import br.com.bobwizley.rootboot.feature.deathitemprotection.DeathItemProtectionFeature;
+import br.com.bobwizley.rootboot.feature.deathstats.DeathStatsFeature;
 import br.com.bobwizley.rootboot.feature.halfhealthbabies.HalfHealthBabiesFeature;
 import br.com.bobwizley.rootboot.feature.heavyfoot.HeavyfootFeature;
 import br.com.bobwizley.rootboot.feature.homingexperienceorb.HomingExperienceOrbFeature;
@@ -90,6 +91,14 @@ public final class RootBootConfigScreen {
                 .setTooltip(Component.translatable(
                         "option.rootboot.death_item_protection.tooltip"))
                 .setSaveConsumer(value -> config.setEnabled(DeathItemProtectionFeature.ID, value))
+                .build());
+
+        general.addEntry(entries.startBooleanToggle(
+                        Component.translatable("option.rootboot.death_stats"),
+                        config.isEnabled(DeathStatsFeature.ID))
+                .setDefaultValue(true)
+                .setTooltip(Component.translatable("option.rootboot.death_stats.tooltip"))
+                .setSaveConsumer(value -> config.setEnabled(DeathStatsFeature.ID, value))
                 .build());
 
         general.addEntry(entries.startBooleanToggle(
