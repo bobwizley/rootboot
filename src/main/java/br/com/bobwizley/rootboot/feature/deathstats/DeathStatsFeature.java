@@ -50,7 +50,10 @@ public final class DeathStatsFeature implements Feature {
         SurvivalClock clock = clock(server);
 
         server.getPlayerList().broadcastSystemMessage(
-                DeathStatsMessage.of(player, clock.survivedTicks(player.getUUID()), deaths(player)),
+                DeathStatsMessage.of(
+                        player.getDisplayName(),
+                        clock.survivedTicks(player.getUUID()),
+                        deaths(player)),
                 false);
         clock.reset(player.getUUID());
     }

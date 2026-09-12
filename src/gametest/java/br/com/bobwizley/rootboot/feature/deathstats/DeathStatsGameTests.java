@@ -28,10 +28,10 @@ public final class DeathStatsGameTests {
         ServerPlayer player = join(helper);
 
         Component message =
-                DeathStatsMessage.of(player, ONE_MINUTE_FIVE_SECONDS_IN_TICKS, 4);
+                DeathStatsMessage.of(player.getDisplayName(), ONE_MINUTE_FIVE_SECONDS_IN_TICKS, 4);
 
         TranslatableContents contents = (TranslatableContents) message.getContents();
-        helper.assertValueEqual(contents.getKey(), "message.rootboot.death_stats", "message key");
+        helper.assertValueEqual(contents.getKey(), DeathStatsMessage.KEY, "message key");
         helper.assertValueEqual(contents.getArgs().length, 3, "announced values");
         helper.assertValueEqual(
                 contents.getArgs()[0], player.getDisplayName(), "announced player name");
