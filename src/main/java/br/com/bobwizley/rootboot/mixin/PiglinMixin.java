@@ -12,9 +12,14 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
- * {@code finalizeSpawn} is the one path every newborn piglin takes and the point where its armor
- * is already populated; loading a piglin from disk never reaches it. Piglin brutes are a sibling
- * of {@link Piglin} rather than a subclass, so targeting this class is what leaves them out.
+ * {@code finalizeSpawn} is where a newborn piglin's armor is already populated, and loading a
+ * piglin from disk never reaches it. Piglin brutes are a sibling of {@link Piglin} rather than a
+ * subclass, so targeting this class is what leaves them out.
+ *
+ * <p>A piglin created from authored NBT — {@code /summon}, a spawner carrying spawn data, a spawn
+ * egg holding {@code entity_data} — is deliberately left alone, because vanilla skips or overwrites
+ * everything {@code finalizeSpawn} decides on those paths. Its armor is the one whoever wrote that
+ * NBT chose, and a rolled trim would overwrite an explicit choice rather than decorate a random one.
  */
 @Mixin(Piglin.class)
 abstract class PiglinMixin {

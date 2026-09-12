@@ -8,6 +8,7 @@ import java.util.Set;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
@@ -29,6 +30,12 @@ import net.minecraft.world.item.equipment.trim.ArmorTrim;
 import net.minecraft.world.item.equipment.trim.TrimMaterials;
 import net.minecraft.world.item.equipment.trim.TrimPatterns;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.levelgen.structure.BuiltinStructures;
+import net.minecraft.world.level.levelgen.structure.Structure;
+import net.minecraft.world.level.levelgen.structure.StructureStart;
+import net.minecraft.world.level.levelgen.structure.pieces.PiecesContainer;
+import net.minecraft.world.level.levelgen.structure.structures.BuriedTreasurePieces;
 import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.level.storage.TagValueOutput;
 
@@ -103,6 +110,42 @@ public final class TrimmedArmoredPiglinsGameTests {
                 TrimmedArmoredPiglins.WILD_CHANCE,
                 "chance outside a bastion");
         helper.succeed();
+    }
+
+    @GameTest
+    public void aPiglinInsideABastionRollsAtTheBastionChance(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        BlockPos pos = helper.absolutePos(SPAWN);
+        Structure bastion = level.registryAccess()
+                .lookupOrThrow(Registries.STRUCTURE)
+                .getOrThrow(BuiltinStructures.BASTION_REMNANT)
+                .value();
+        ChunkAccess chunk = level.getChunk(pos);
+        try {
+            chunk.setStartForStructure(bastion, coveringStart(bastion, chunk, pos));
+            chunk.addReferenceForStructure(bastion, chunk.getPos().pack());
+
+            helper.assertValueEqual(
+                    TrimmedArmoredPiglins.chanceAt(level, pos),
+                    TrimmedArmoredPiglins.BASTION_CHANCE,
+                    "chance inside a bastion");
+        } finally {
+            chunk.setStartForStructure(bastion, StructureStart.INVALID_START);
+        }
+        helper.succeed();
+    }
+
+    /**
+     * A start whose single piece covers {@code pos}, which is all the structure lookup reads.
+     * Generating a real bastion would cost far more than the one bounding box under test.
+     */
+    private static StructureStart coveringStart(
+            Structure structure, ChunkAccess chunk, BlockPos pos) {
+        return new StructureStart(
+                structure,
+                chunk.getPos(),
+                0,
+                new PiecesContainer(List.of(new BuriedTreasurePieces.BuriedTreasurePiece(pos))));
     }
 
     @GameTest
