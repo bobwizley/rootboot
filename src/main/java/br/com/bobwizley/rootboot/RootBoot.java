@@ -8,6 +8,7 @@ import br.com.bobwizley.rootboot.feature.cropsexperience.CropsExperienceFeature;
 import br.com.bobwizley.rootboot.feature.dayannouncement.DayAnnouncementFeature;
 import br.com.bobwizley.rootboot.feature.deathitemprotection.DeathItemProtectionFeature;
 import br.com.bobwizley.rootboot.feature.deathstats.DeathStatsFeature;
+import br.com.bobwizley.rootboot.feature.extraloyaltridents.ExtraLoyalTridentsFeature;
 import br.com.bobwizley.rootboot.feature.halfhealthbabies.HalfHealthBabies;
 import br.com.bobwizley.rootboot.feature.halfhealthbabies.HalfHealthBabiesFeature;
 import br.com.bobwizley.rootboot.feature.homingexperienceorb.HomingExperienceOrbFeature;
@@ -64,6 +65,7 @@ public final class RootBoot implements ModInitializer {
                 new MajorEventDiscoveryFeature(),
                 new HalfHealthBabiesFeature(),
                 new TrimmedArmoredPiglinsFeature(),
+                new ExtraLoyalTridentsFeature(),
                 new HeavyfootFeature(cfg.heavyfootRadius()),
                 new LightfootFeature()));
         if (cfg.ensureKeys(registry.featureIds())) {

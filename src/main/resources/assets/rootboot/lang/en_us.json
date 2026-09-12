@@ -24,6 +24,8 @@
   "option.rootboot.half_health_babies.tooltip": "Halves the effective max health of any baby mob, composing with modifiers from other mods. Disabling it restores the full max health of existing babies as they are loaded.",
   "option.rootboot.trimmed_armored_piglins": "Trimmed Armored Piglins",
   "option.rootboot.trimmed_armored_piglins.tooltip": "Gives each armor piece a piglin is born wearing a chance of coming out trimmed: 25% outside bastions and 50% inside them, rolled once per piece at spawn. Piglin brutes and unarmored piglins are never trimmed, and piglins a world already has are left alone.",
+  "option.rootboot.extra_loyal_tridents": "Extra Loyal Tridents",
+  "option.rootboot.extra_loyal_tridents.tooltip": "Keeps a trident enchanted with Loyalty from being destroyed by the void. It waits below the world while its owner is dead, offline or in another dimension, and the vanilla return takes it back once the owner is available again in the same dimension.",
   "option.rootboot.heavyfoot": "Heavyfoot",
   "option.rootboot.heavyfoot.tooltip": "Enables the Heavyfoot effect on enchanted boots.",
   "option.rootboot.heavyfoot_radius": "Heavyfoot Radius",

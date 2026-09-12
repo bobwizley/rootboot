@@ -11,6 +11,7 @@ import br.com.bobwizley.rootboot.feature.cropsexperience.CropsExperienceFeature;
 import br.com.bobwizley.rootboot.feature.dayannouncement.DayAnnouncementFeature;
 import br.com.bobwizley.rootboot.feature.deathitemprotection.DeathItemProtectionFeature;
 import br.com.bobwizley.rootboot.feature.deathstats.DeathStatsFeature;
+import br.com.bobwizley.rootboot.feature.extraloyaltridents.ExtraLoyalTridentsFeature;
 import br.com.bobwizley.rootboot.feature.halfhealthbabies.HalfHealthBabiesFeature;
 import br.com.bobwizley.rootboot.feature.heavyfoot.HeavyfootFeature;
 import br.com.bobwizley.rootboot.feature.homingexperienceorb.HomingExperienceOrbFeature;
@@ -134,6 +135,15 @@ public final class RootBootConfigScreen {
                         "option.rootboot.trimmed_armored_piglins.tooltip"))
                 .setSaveConsumer(value ->
                         config.setEnabled(TrimmedArmoredPiglinsFeature.ID, value))
+                .build());
+
+        general.addEntry(entries.startBooleanToggle(
+                        Component.translatable("option.rootboot.extra_loyal_tridents"),
+                        config.isEnabled(ExtraLoyalTridentsFeature.ID))
+                .setDefaultValue(true)
+                .setTooltip(Component.translatable(
+                        "option.rootboot.extra_loyal_tridents.tooltip"))
+                .setSaveConsumer(value -> config.setEnabled(ExtraLoyalTridentsFeature.ID, value))
                 .build());
 
         general.addEntry(entries.startBooleanToggle(

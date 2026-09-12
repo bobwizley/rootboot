@@ -9,7 +9,8 @@
     "ItemEntityMixin",
     "LivingEntityMixin",
     "PiglinMixin",
-    "PlayerMixin"
+    "PlayerMixin",
+    "ThrownTridentMixin"
   ],
   "injectors": {
     "defaultRequire": 1

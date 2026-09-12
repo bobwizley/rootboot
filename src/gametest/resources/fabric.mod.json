@@ -9,6 +9,7 @@
       "br.com.bobwizley.rootboot.feature.cropsexperience.CropsExperienceGameTests",
       "br.com.bobwizley.rootboot.feature.deathitemprotection.DeathItemProtectionGameTests",
       "br.com.bobwizley.rootboot.feature.deathstats.DeathStatsGameTests",
+      "br.com.bobwizley.rootboot.feature.extraloyaltridents.ExtraLoyalTridentsGameTests",
       "br.com.bobwizley.rootboot.feature.halfhealthbabies.HalfHealthBabiesGameTests",
       "br.com.bobwizley.rootboot.feature.homingexperienceorb.HomingExperienceOrbGameTests",
       "br.com.bobwizley.rootboot.feature.majoreventdiscovery.MajorEventDiscoveryGameTests",
