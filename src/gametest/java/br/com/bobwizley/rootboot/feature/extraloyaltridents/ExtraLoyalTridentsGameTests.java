@@ -1,9 +1,11 @@
 package br.com.bobwizley.rootboot.feature.extraloyaltridents;
 
 import java.util.List;
+import java.util.Set;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -12,6 +14,7 @@ import net.minecraft.world.entity.projectile.arrow.ThrownTrident;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
@@ -20,14 +23,14 @@ public final class ExtraLoyalTridentsGameTests {
     private static final int TICKS_TO_CROSS_THE_VOID = 400;
 
     @GameTest
-    public void aLoyalTridentWaitsForAnOwnerThatLeftTheDimension(GameTestHelper helper) {
+    public void aLoyalTridentWaitsForADisconnectedOwner(GameTestHelper helper) {
         ExtraLoyalTridents.enable();
         ServerPlayer owner = owner(helper);
         ThrownTrident trident = loyalTridentInTheVoid(helper, owner);
         helper.getLevel().getServer().getPlayerList().remove(owner);
         helper.assertTrue(
                 trident.getOwner() == null,
-                "An owner outside the dimension must be unreachable from the trident");
+                "A disconnected owner must be unreachable from the trident");
 
         tick(trident, TICKS_TO_CROSS_THE_VOID);
 
@@ -39,6 +42,41 @@ public final class ExtraLoyalTridentsGameTests {
                 droppedItems(helper, trident).isEmpty(),
                 "Waiting must not hand the trident over as a dropped item");
         trident.discard();
+        helper.succeed();
+    }
+
+    @GameTest
+    public void aLoyalTridentWaitsForAnOwnerInAnotherDimension(GameTestHelper helper) {
+        ExtraLoyalTridents.enable();
+        ServerPlayer owner = owner(helper);
+        ThrownTrident trident = loyalTridentInTheVoid(helper, owner);
+        ServerLevel nether = helper.getLevel().getServer().getLevel(Level.NETHER);
+        teleport(owner, nether, 100.0, 80.0, 100.0);
+        helper.assertTrue(
+                trident.getOwner() != null,
+                "An owner in another dimension still resolves, which is what makes the"
+                        + " dimension check necessary");
+
+        tick(trident, TICKS_TO_CROSS_THE_VOID);
+
+        helper.assertFalse(
+                trident.isRemoved(), "An owner in another dimension must not cost the trident");
+        helper.assertTrue(
+                ((VoidHeldTrident) trident).rootboot$isHeldInVoid(),
+                "A trident must keep waiting while its owner is in another dimension");
+        helper.assertTrue(
+                trident.getY() < helper.getLevel().getMinY(),
+                "A waiting trident must not chase its owner out of the void");
+
+        Vec3 home = helper.absoluteVec(new Vec3(1.0, 4.0, 1.0));
+        teleport(owner, helper.getLevel(), home.x, home.y, home.z);
+        tick(trident, 60);
+
+        helper.assertTrue(
+                trident.getY() >= helper.getLevel().getMinY(),
+                "The vanilla return must resume once the owner is back in the dimension");
+        trident.discard();
+        removeOwner(helper, owner);
         helper.succeed();
     }
 
@@ -167,6 +205,11 @@ public final class ExtraLoyalTridentsGameTests {
         Vec3 position = helper.absoluteVec(new Vec3(1.0, 4.0, 1.0));
         owner.setPosRaw(position.x, position.y, position.z);
         return owner;
+    }
+
+    private static void teleport(
+            ServerPlayer owner, ServerLevel level, double x, double y, double z) {
+        owner.teleportTo(level, x, y, z, Set.of(), owner.getYRot(), owner.getXRot(), false);
     }
 
     private static void removeOwner(GameTestHelper helper, ServerPlayer owner) {

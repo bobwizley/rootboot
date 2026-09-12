@@ -1,6 +1,7 @@
 package br.com.bobwizley.rootboot.feature.extraloyaltridents;
 
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.projectile.arrow.ThrownTrident;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.phys.Vec3;
@@ -59,7 +60,20 @@ public final class ExtraLoyalTridents {
             trident.setPos(trident.getX(), floor - HOLD_DEPTH, trident.getZ());
             trident.setDeltaMovement(Vec3.ZERO);
         }
-        return !held.rootboot$hasAcceptableReturnOwner();
+        return !hasReturnableOwner(trident, held);
+    }
+
+    /**
+     * The vanilla predicate answers whether the owner is alive and playing, and 26.2 resolves an
+     * owner in any dimension, so the dimension is the one part it cannot answer. Releasing the
+     * trident to an owner elsewhere would send it chasing those coordinates inside its own
+     * dimension instead of waiting for the owner to come back.
+     */
+    private static boolean hasReturnableOwner(ThrownTrident trident, VoidHeldTrident held) {
+        Entity owner = trident.getOwner();
+        return owner != null
+                && owner.level() == trident.level()
+                && held.rootboot$hasAcceptableReturnOwner();
     }
 
     private static boolean isLoyal(ThrownTrident trident, ServerLevel level) {
