@@ -26,6 +26,8 @@
   "option.rootboot.trimmed_armored_piglins.tooltip": "Gives each armor piece a piglin is born wearing a chance of coming out trimmed: 25% outside bastions and 50% inside them, rolled once per piece at spawn. Piglin brutes and unarmored piglins are never trimmed, and piglins a world already has are left alone.",
   "option.rootboot.extra_loyal_tridents": "Extra Loyal Tridents",
   "option.rootboot.extra_loyal_tridents.tooltip": "Keeps a trident enchanted with Loyalty from being destroyed by the void. It waits below the world while its owner is dead, offline or in another dimension, and the vanilla return takes it back once the owner is available again in the same dimension.",
+  "option.rootboot.drop_ladder": "Drop Ladder",
+  "option.rootboot.drop_ladder.tooltip": "While you stand in a ladder column holding a ladder, each sneak press hangs one more ladder under the bottom of the column, taken from your main hand first and from your off hand only as a fallback. A hanging ladder holds on to the ladder above it, so losing that one drops everything under it.",
   "option.rootboot.heavyfoot": "Heavyfoot",
   "option.rootboot.heavyfoot.tooltip": "Enables the Heavyfoot effect on enchanted boots.",
   "option.rootboot.heavyfoot_radius": "Heavyfoot Radius",
