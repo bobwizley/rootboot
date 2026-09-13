@@ -21,38 +21,83 @@ if ! git merge-base --is-ancestor "$tag_commit" refs/remotes/origin/master; then
 fi
 
 auth_header="Authorization: token $token"
-release_url="$api_url/repos/$repository/releases/tags/$tag"
+json_header="Content-Type: application/json"
+releases_url="$api_url/repos/$repository/releases"
 
-release_json="$(
+lookup="$(
     curl \
-        --fail-with-body \
         --silent \
         --show-error \
+        --write-out '\n%{http_code}' \
         --header "$auth_header" \
-        "$release_url"
-)" || {
-    echo "Release $tag must exist before the workflow runs" >&2
-    exit 1
-}
+        "$releases_url/tags/$tag"
+)"
+lookup_status="${lookup##*$'\n'}"
+release_json="${lookup%$'\n'*}"
 
-if [[ "$(jq -r '.tag_name' <<<"$release_json")" != "$tag" ]]; then
-    echo "Release tag returned by Gitea does not match $tag" >&2
-    exit 1
-fi
+case "$lookup_status" in
+    200) ;;
+    404) release_json="" ;;
+    *)
+        echo "Unexpected response $lookup_status while looking up release $tag" >&2
+        echo "$release_json" >&2
+        exit 1
+        ;;
+esac
 
-if [[ "$(jq -r '.draft' <<<"$release_json")" != "false" ]]; then
-    echo "Release $tag must not be a draft" >&2
-    exit 1
-fi
+./gradlew build --no-daemon "-Pmod_version=$version"
 
-if [[ "$(jq -r '.prerelease' <<<"$release_json")" != "false" ]]; then
-    echo "Release $tag must not be a prerelease" >&2
-    exit 1
-fi
-
-release_id="$(jq -er '.id' <<<"$release_json")"
 asset_name="rootboot-$version.jar"
-assets_url="$api_url/repos/$repository/releases/$release_id/assets"
+asset_path="build/libs/$asset_name"
+
+if [[ ! -f "$asset_path" ]]; then
+    echo "Expected release asset was not built: $asset_path" >&2
+    exit 1
+fi
+
+if [[ -z "$release_json" ]]; then
+    previous_tag="$(git describe --tags --abbrev=0 "${tag}^")"
+    notes="$(git log --format='- %s' "$previous_tag..$tag")"
+
+    release_json="$(
+        jq \
+            --null-input \
+            --arg tag "$tag" \
+            --arg body "$notes" \
+            '{tag_name: $tag, name: $tag, body: $body, draft: false, prerelease: false}' |
+            curl \
+                --fail-with-body \
+                --silent \
+                --show-error \
+                --request POST \
+                --header "$auth_header" \
+                --header "$json_header" \
+                --data @- \
+                "$releases_url"
+    )"
+
+    echo "Created release $tag"
+else
+    if [[ "$(jq -r '.tag_name' <<<"$release_json")" != "$tag" ]]; then
+        echo "Release tag returned by Gitea does not match $tag" >&2
+        exit 1
+    fi
+
+    release_json="$(
+        jq --null-input '{draft: false, prerelease: false}' |
+            curl \
+                --fail-with-body \
+                --silent \
+                --show-error \
+                --request PATCH \
+                --header "$auth_header" \
+                --header "$json_header" \
+                --data @- \
+                "$releases_url/$(jq -er '.id' <<<"$release_json")"
+    )"
+fi
+
+assets_url="$releases_url/$(jq -er '.id' <<<"$release_json")/assets"
 
 assets_json="$(
     curl \
@@ -63,17 +108,9 @@ assets_json="$(
         "$assets_url"
 )"
 
-./gradlew build --no-daemon "-Pmod_version=$version"
-
 if jq -e --arg name "$asset_name" '.[] | select(.name == $name)' <<<"$assets_json" >/dev/null; then
     echo "Release asset $asset_name already exists; nothing to publish"
     exit 0
-fi
-
-asset_path="build/libs/$asset_name"
-if [[ ! -f "$asset_path" ]]; then
-    echo "Expected release asset was not built: $asset_path" >&2
-    exit 1
 fi
 
 curl \

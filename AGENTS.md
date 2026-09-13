@@ -29,6 +29,10 @@ Sources are split across two Loom source sets: `src/main` (common) and `src/clie
 
 `src/main/generated` is produced by `runDatagen` and committed into the repo (ADR-0003) — never hand-edit the JSON there; change the datagen providers and rerun the task instead.
 
+## Releases
+
+Pushing a `vMAJOR.MINOR.PATCH` tag is the release: the pipeline creates the Gitea release when it is missing, with the tag name as the title and the commit subjects since the previous tag as the body. Creating the release by hand in the Gitea UI does the same thing, and a body written there is never overwritten. The jar is only attached after a green build, so a failed build leaves no release behind.
+
 ## Project state
 
 The project is being built incrementally, one feature at a time, tracked under the epic **issue #1**. The full scope decisions live in `docs/FEATURES.md` — read it before picking up any feature-shaped issue, since it's the source of truth for what each feature does and what's explicitly out of scope.
