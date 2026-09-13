@@ -1,24 +1,31 @@
 name: CI
 
 on:
-  pull_request:
-    branches:
-      - master
   push:
     branches:
-      - master
+      - "**"
+    tags:
+      - "v*.*.*"
 
 permissions:
   code: read
+  releases: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Install release tools
+        if: startsWith(gitea.ref, 'refs/tags/')
+        run: |
+          apt-get update
+          apt-get install --yes --no-install-recommends curl git jq
+
       - name: Check out repository
         uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           persist-credentials: false
 
       - name: Set up Java
@@ -38,4 +45,20 @@ jobs:
             ${{ runner.os }}-gradle-
 
       - name: Test and build
-        run: ./gradlew build --no-daemon
+        env:
+          GITEA_REF: ${{ gitea.ref }}
+        run: |
+          if [[ "$GITEA_REF" == refs/tags/* ]]; then
+              ./gradlew build --no-daemon "-Pmod_version=${GITEA_REF#refs/tags/v}"
+          else
+              ./gradlew build --no-daemon
+          fi
+
+      - name: Publish release
+        if: startsWith(gitea.ref, 'refs/tags/')
+        env:
+          GITEA_API_URL: ${{ gitea.api_url }}
+          GITEA_REF_NAME: ${{ gitea.ref_name }}
+          GITEA_REPOSITORY: ${{ gitea.repository }}
+          GITEA_TOKEN: ${{ secrets.GITEA_TOKEN }}
+        run: ./.gitea/scripts/release.sh

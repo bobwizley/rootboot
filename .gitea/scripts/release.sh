@@ -45,13 +45,11 @@ case "$lookup_status" in
         ;;
 esac
 
-./gradlew build --no-daemon "-Pmod_version=$version"
-
 asset_name="rootboot-$version.jar"
 asset_path="build/libs/$asset_name"
 
 if [[ ! -f "$asset_path" ]]; then
-    echo "Expected release asset was not built: $asset_path" >&2
+    echo "Expected release asset is missing: $asset_path" >&2
     exit 1
 fi
 
