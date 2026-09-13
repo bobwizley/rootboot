@@ -1,8 +1,10 @@
 package br.com.bobwizley.rootboot.feature.voidrescue;
 
+import java.util.Set;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
@@ -12,6 +14,7 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
 /**
@@ -25,11 +28,23 @@ public final class VoidRescueGameTests {
     /** Far more than a player can take, so the hit is lethal whatever the totem left behind. */
     private static final float LETHAL = 1000.0F;
 
-    /** Levitation IV, which converges on the four blocks per second a player walks with. */
-    private static final int EXPECTED_RISE_AMPLIFIER = 3;
+    /** Where End terrain is: the rescue has to reach at least this high to hand over a landing. */
+    private static final double END_ISLAND_HEIGHT = 60.0;
+
+    /** What has to be left when the player gets there, so the sneak back down still fits. */
+    private static final int TIME_TO_COME_DOWN_TICKS = 10 * 20;
 
     /** What the server waits for a joining client before it stops holding the player invulnerable. */
     private static final int CLIENT_LOAD_TIMEOUT_TICKS = 60;
+
+    /** A potion far longer than any rescue, so the two can never be confused for each other. */
+    private static final int POTION_TICKS = 4 * VoidRescue.DEADLINE_TICKS;
+
+    /** Vanilla's terminal fall speed, which is what a player reaching the void is already moving at. */
+    private static final double TERMINAL_FALL_SPEED = -3.92;
+
+    /** Five hits of four points, ten ticks apart, plus room for the hit that lands on tick zero. */
+    private static final int TICKS_TO_REACH_THE_LETHAL_HIT = 60;
 
     @GameTest
     public void theVoidSpendsATotemHeldInTheMainHand(GameTestHelper helper) {
@@ -97,10 +112,7 @@ public final class VoidRescueGameTests {
 
         VoidRescue.tick(player);
 
-        MobEffectInstance rise = player.getEffect(MobEffects.LEVITATION);
-        helper.assertTrue(rise != null, "A rescued player must rise");
-        helper.assertValueEqual(
-                rise.getAmplifier(), EXPECTED_RISE_AMPLIFIER, "rise in blocks per second");
+        helper.assertTrue(player.hasEffect(MobEffects.LEVITATION), "A rescued player must rise");
         helper.assertFalse(
                 player.hasEffect(MobEffects.SLOW_FALLING), "A rising player must not be sinking");
 
@@ -211,8 +223,109 @@ public final class VoidRescueGameTests {
         finish(helper, player);
     }
 
+    @GameTest
+    public void risingLeavesAPlayersOwnSlowFallingAlone(GameTestHelper helper) {
+        ServerPlayer player = rescuedPlayer(helper);
+        player.addEffect(new MobEffectInstance(MobEffects.SLOW_FALLING, POTION_TICKS));
+
+        VoidRescue.tick(player);
+
+        helper.assertTrue(
+                player.hasEffect(MobEffects.LEVITATION), "A rescued player must rise");
+        helper.assertTrue(
+                potionIsIntact(player),
+                "Rising must not spend a slow falling potion; levitation already replaces gravity");
+        finish(helper, player);
+    }
+
+    @GameTest
+    public void endingLeavesAPlayersOwnSlowFallingAlone(GameTestHelper helper) {
+        ServerPlayer player = rescuedPlayer(helper);
+        player.setShiftKeyDown(true);
+        player.addEffect(new MobEffectInstance(MobEffects.SLOW_FALLING, POTION_TICKS));
+        VoidRescue.tick(player);
+
+        player.setOnGround(true);
+        VoidRescue.tick(player);
+
+        helper.assertValueEqual(remaining(helper, player), 0, "deadline left after landing");
+        helper.assertTrue(
+                potionIsIntact(player),
+                "Ending must clear only what the rescue itself applied");
+        finish(helper, player);
+    }
+
+    /**
+     * The whole point of the feature, measured against vanilla movement instead of against the
+     * constant that produces it. The fall is the ordinary one: a player at full health drops into
+     * the End void, and the void takes five hits over forty ticks to reach the lethal one, so the
+     * totem fires a long way under the height where the void first touched them.
+     */
+    @GameTest
+    public void aFullHealthFallIntoTheEndVoidGetsBackToTheIslands(GameTestHelper helper) {
+        ServerPlayer player = fallingIntoTheEndVoid(helper);
+
+        for (int tick = 0; tick < TICKS_TO_REACH_THE_LETHAL_HIT
+                && remaining(helper, player) == 0; tick++) {
+            player.invulnerableTime = Math.max(0, player.invulnerableTime - 1);
+            player.checkBelowWorld();
+            player.travel(Vec3.ZERO);
+        }
+        helper.assertTrue(remaining(helper, player) > 0, "The void must have activated the totem");
+
+        int leftOnArrival = 0;
+        for (int tick = 0; tick < VoidRescue.DEADLINE_TICKS && leftOnArrival == 0; tick++) {
+            VoidRescue.tick(player);
+            player.travel(Vec3.ZERO);
+            if (reachedTheIslands(player)) {
+                leftOnArrival = remaining(helper, player);
+            }
+        }
+
+        helper.assertTrue(
+                leftOnArrival >= TIME_TO_COME_DOWN_TICKS,
+                "A rescue must reach the End islands with time left to get onto them (reached "
+                        + player.getY() + " with " + leftOnArrival + " ticks left)");
+        finish(helper, player);
+    }
+
+    /**
+     * Up at island height, or stopped by the underside of one: both mean the climb got the player
+     * back to where the End has ground again. Which of the two happens depends on where the fall
+     * started, and steering out from under an island is ordinary movement the feature never touches.
+     */
+    private static boolean reachedTheIslands(ServerPlayer player) {
+        return player.getY() >= END_ISLAND_HEIGHT
+                || (player.verticalCollision && player.getDeltaMovement().y >= 0.0);
+    }
+
     private static ItemStack totem() {
         return new ItemStack(Items.TOTEM_OF_UNDYING);
+    }
+
+    /** Far longer than the rescue, so anything the rescue leaves behind is unmistakably the potion. */
+    private static boolean potionIsIntact(ServerPlayer player) {
+        MobEffectInstance potion = player.getEffect(MobEffects.SLOW_FALLING);
+        return potion != null && potion.getDuration() > VoidRescue.DEADLINE_TICKS;
+    }
+
+    /**
+     * A player at full health at terminal velocity just under the height where the End void starts
+     * hurting. Vanilla holds a player invulnerable while it considers them mid-teleport, so the
+     * dimension change has to be closed out before the void can touch them.
+     */
+    private static ServerPlayer fallingIntoTheEndVoid(GameTestHelper helper) {
+        ServerPlayer player = floatingPlayer(helper);
+        player.setItemInHand(InteractionHand.MAIN_HAND, totem());
+
+        ServerLevel end = server(helper).getLevel(Level.END);
+        player.teleportTo(end, 0.0, 0.0, 0.0, Set.of(), 0.0F, 0.0F, false);
+        player.hasChangedDimension();
+        letTheClientFinishLoading(helper, player);
+
+        player.setPosRaw(0.0, end.getMinY() - 65.0, 0.0);
+        player.setDeltaMovement(0.0, TERMINAL_FALL_SPEED, 0.0);
+        return player;
     }
 
     /** A survival player in the air, which is where every rescue starts and ends. */
@@ -272,7 +385,8 @@ public final class VoidRescueGameTests {
     }
 
     private static int remaining(GameTestHelper helper, ServerPlayer player) {
-        return VoidRescue.state(server(helper)).remaining(player.getUUID());
+        VoidRescueState.Rescue rescue = VoidRescue.state(server(helper)).rescue(player.getUUID());
+        return rescue == null ? 0 : rescue.remaining();
     }
 
     private static MinecraftServer server(GameTestHelper helper) {
@@ -280,7 +394,7 @@ public final class VoidRescueGameTests {
     }
 
     private static void finish(GameTestHelper helper, ServerPlayer player) {
-        VoidRescue.state(server(helper)).setRemaining(player.getUUID(), 0);
+        VoidRescue.state(server(helper)).set(player.getUUID(), null);
         server(helper).getPlayerList().remove(player);
         helper.succeed();
     }

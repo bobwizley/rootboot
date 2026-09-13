@@ -29,7 +29,7 @@
   "option.rootboot.drop_ladder": "Drop Ladder",
   "option.rootboot.drop_ladder.tooltip": "While you stand in a ladder column holding a ladder, each sneak press hangs one more ladder under the bottom of the column, taken from your main hand first and from your off hand only as a fallback. A hanging ladder holds on to the ladder above it, so losing that one drops everything under it.",
   "option.rootboot.void_rescue": "Void Rescue",
-  "option.rootboot.void_rescue.tooltip": "Lets a totem of undying in either hand save you from the void, in any dimension. The totem works exactly as it always does, and for the next minute you rise about four blocks per second and sink slowly while you hold sneak. It ends as soon as you land or the minute runs out, and a later fall into the void can spend another totem for another full minute.",
+  "option.rootboot.void_rescue.tooltip": "Lets a totem of undying in either hand save you from the void, in any dimension. The totem works exactly as it always does, and for the next minute you rise steadily and sink slowly while you hold sneak, which is enough to climb back out of the End. It ends as soon as you land or the minute runs out, and a later fall into the void can spend another totem for another full minute.",
   "option.rootboot.heavyfoot": "Heavyfoot",
   "option.rootboot.heavyfoot.tooltip": "Enables the Heavyfoot effect on enchanted boots.",
   "option.rootboot.heavyfoot_radius": "Heavyfoot Radius",

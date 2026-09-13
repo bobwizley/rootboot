@@ -1,13 +1,11 @@
 package br.com.bobwizley.rootboot.feature.voidrescue;
 
-import net.minecraft.core.Holder;
+import br.com.bobwizley.rootboot.feature.voidrescue.VoidRescueState.Rescue;
+import java.util.Optional;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageTypes;
-import net.minecraft.world.effect.MobEffect;
-import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
 
 /**
@@ -21,12 +19,6 @@ public final class VoidRescue {
 
     /** The whole deadline a single activation grants, in ticks. */
     public static final int DEADLINE_TICKS = 20 * 60;
-
-    /**
-     * Levitation IV. The effect converges on {@code 0.05 * (amplifier + 1)} blocks per tick, so
-     * this is four blocks per second — the pace the player walks with on the ground.
-     */
-    private static final int RISE_AMPLIFIER = 3;
 
     private static boolean enabled;
 
@@ -55,7 +47,7 @@ public final class VoidRescue {
     public static void begin(LivingEntity entity, DamageSource killingDamage) {
         if (reachesTotem(entity, killingDamage)) {
             ServerPlayer player = (ServerPlayer) entity;
-            state(player).setRemaining(player.getUUID(), DEADLINE_TICKS);
+            state(player).set(player.getUUID(), new Rescue(DEADLINE_TICKS, Optional.empty()));
         }
     }
 
@@ -68,7 +60,7 @@ public final class VoidRescue {
     public static boolean shieldsFromVoid(LivingEntity entity, DamageSource source) {
         return entity instanceof ServerPlayer player
                 && isVoid(source)
-                && state(player).remaining(player.getUUID()) > 0;
+                && state(player).rescue(player.getUUID()) != null;
     }
 
     public static void tick(MinecraftServer server) {
@@ -83,47 +75,58 @@ public final class VoidRescue {
     }
 
     private static void tick(VoidRescueState state, ServerPlayer player) {
-        int remaining = state.remaining(player.getUUID());
-        if (remaining <= 0) {
+        Rescue rescue = state.rescue(player.getUUID());
+        if (rescue == null) {
             return;
         }
         if (!player.isAlive() || player.onGround()) {
-            end(state, player);
+            end(state, player, rescue);
             return;
         }
 
-        remaining--;
-        if (remaining == 0) {
-            end(state, player);
+        int remaining = rescue.remaining() - 1;
+        if (remaining <= 0) {
+            end(state, player, rescue);
             return;
         }
-        state.setRemaining(player.getUUID(), remaining);
-        steer(player, remaining);
+        state.set(player.getUUID(), steer(player, rescue, remaining));
     }
 
     /**
-     * Rising and sinking are expressed as the two vanilla effects that already mean them, so the
-     * movement is predicted by the client that owns it instead of being corrected by the server,
-     * and a client without RootBoot sees exactly what is happening. Both effects belong to the
-     * rescue while it runs: the one that does not match the sneak key is cleared every tick, and
-     * the deadline is what the applied one is given as its duration, so it runs out with the
-     * rescue rather than outliving it.
+     * Moves the player with the vanilla effect that matches the sneak key, so the movement is
+     * predicted by the client that owns it instead of being corrected by the server, and a client
+     * without RootBoot sees exactly what is happening.
+     *
+     * <p>The rescue only ever touches what it applied itself. Rising does not clear Slow Falling,
+     * because Levitation already replaces gravity outright and clearing it would only cost the
+     * player a potion; sinking clears Levitation only when the rescue is the one holding it, which
+     * leaves a shulker's levitation to the shulker. An effect the player already has from somewhere
+     * else is left untouched rather than applied over: it moves them the way this tick wants
+     * anyway, and {@code addEffect} would rewrite its flags and then report a success the rescue
+     * would later honour by taking the player's own effect away.
      */
-    private static void steer(ServerPlayer player, int remaining) {
-        boolean sinking = player.isShiftKeyDown();
-        Holder<MobEffect> wanted = sinking ? MobEffects.SLOW_FALLING : MobEffects.LEVITATION;
-        player.removeEffect(sinking ? MobEffects.LEVITATION : MobEffects.SLOW_FALLING);
-        if (!player.hasEffect(wanted)) {
-            player.addEffect(new MobEffectInstance(
-                    wanted, remaining, sinking ? 0 : RISE_AMPLIFIER, false, false, true));
+    private static Rescue steer(ServerPlayer player, Rescue rescue, int remaining) {
+        VoidRescueMotion wanted =
+                player.isShiftKeyDown() ? VoidRescueMotion.SINKING : VoidRescueMotion.RISING;
+        Optional<VoidRescueMotion> held = rescue.held();
+        if (held.filter(motion -> motion == wanted).isPresent()
+                && player.hasEffect(wanted.effect())) {
+            return new Rescue(remaining, held);
         }
+
+        held.filter(motion -> motion != wanted)
+                .ifPresent(motion -> player.removeEffect(motion.effect()));
+        if (player.hasEffect(wanted.effect())) {
+            return new Rescue(remaining, Optional.empty());
+        }
+        player.addEffect(wanted.instance(remaining));
+        return new Rescue(remaining, Optional.of(wanted));
     }
 
     /** Ends only this activation: nothing here outlives it, and nothing blocks the next one. */
-    private static void end(VoidRescueState state, ServerPlayer player) {
-        state.setRemaining(player.getUUID(), 0);
-        player.removeEffect(MobEffects.LEVITATION);
-        player.removeEffect(MobEffects.SLOW_FALLING);
+    private static void end(VoidRescueState state, ServerPlayer player, Rescue rescue) {
+        rescue.held().ifPresent(motion -> player.removeEffect(motion.effect()));
+        state.set(player.getUUID(), null);
     }
 
     private static boolean isVoid(DamageSource source) {
