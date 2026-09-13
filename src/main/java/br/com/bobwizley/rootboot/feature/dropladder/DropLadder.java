@@ -4,11 +4,12 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
-import net.minecraft.server.MinecraftServer;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Blocks;
@@ -35,18 +36,16 @@ public final class DropLadder {
         enabled = false;
     }
 
-    public static void tick(MinecraftServer server) {
-        for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-            tick(player);
-        }
-    }
-
     /**
      * Turns the sneak key into the gesture the feature reacts to: only the transition into a press
      * extends the column, so holding the key down leaves the column where the press left it.
+     *
+     * <p>Called once per input the client reports rather than once per tick, because the client
+     * reports every change it makes and a lagging one reports several of them at once. Sampling the
+     * key per tick instead would read a release and the press that followed it as no change at all.
      */
-    public static void tick(ServerPlayer player) {
-        if (!player.isShiftKeyDown()) {
+    public static void readSneakInput(ServerPlayer player) {
+        if (!enabled || !player.isShiftKeyDown()) {
             sneaking.remove(player.getUUID());
             return;
         }
@@ -71,7 +70,7 @@ public final class DropLadder {
     }
 
     private static void extendColumn(ServerPlayer player) {
-        if (!enabled || !(player.level() instanceof ServerLevel level)) {
+        if (!(player.level() instanceof ServerLevel level)) {
             return;
         }
 
@@ -86,7 +85,7 @@ public final class DropLadder {
 
         BlockPos bottom = bottomOfColumn(level, climbed);
         BlockPos target = bottom.below();
-        if (!mayPlaceAt(level, player, target)) {
+        if (!mayPlaceAt(level, player, target, player.getItemInHand(hand))) {
             return;
         }
 
@@ -134,14 +133,18 @@ public final class DropLadder {
 
     /**
      * The ladder is placed directly instead of going through the player's use flow, so the rules
-     * that flow would apply — spawn protection, world border, spectator and adventure restrictions
-     * — have to be checked here.
+     * that flow would apply — spawn protection, the world border, spectator and adventure mode —
+     * have to be checked here. Adventure mode asks about the ladder actually being spent and about
+     * the ladder above as the surface it is put against, which is the question the use flow asks;
+     * the permission to break the obstruction in the way is a different one and grants nothing here.
      */
-    private static boolean mayPlaceAt(ServerLevel level, ServerPlayer player, BlockPos pos) {
+    private static boolean mayPlaceAt(
+            ServerLevel level, ServerPlayer player, BlockPos pos, ItemStack ladder) {
         return level.isInWorldBounds(pos)
                 && level.getBlockState(pos).canBeReplaced()
+                && !player.isSpectator()
                 && level.mayInteract(player, pos)
-                && !player.blockActionRestricted(level, pos, player.gameMode());
+                && player.mayUseItemAt(pos, Direction.DOWN, ladder);
     }
 
     private static void announcePlacement(

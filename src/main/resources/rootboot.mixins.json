@@ -11,6 +11,7 @@
     "LivingEntityMixin",
     "PiglinMixin",
     "PlayerMixin",
+    "ServerGamePacketListenerImplMixin",
     "ThrownTridentMixin"
   ],
   "injectors": {

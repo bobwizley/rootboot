@@ -1,7 +1,6 @@
 package br.com.bobwizley.rootboot.feature.dropladder;
 
 import br.com.bobwizley.rootboot.feature.Feature;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 
 /**
@@ -23,7 +22,6 @@ public final class DropLadderFeature implements Feature {
     @Override
     public void register() {
         DropLadder.enable();
-        ServerTickEvents.END_SERVER_TICK.register(DropLadder::tick);
         ServerPlayConnectionEvents.DISCONNECT.register(
                 (handler, server) -> DropLadder.forget(handler.player));
     }

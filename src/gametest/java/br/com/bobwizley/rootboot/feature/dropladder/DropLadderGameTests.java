@@ -1,12 +1,18 @@
 package br.com.bobwizley.rootboot.feature.dropladder;
 
+import java.util.List;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
+import net.minecraft.advancements.predicates.BlockPredicate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.item.AdventureModePredicate;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
@@ -44,7 +50,7 @@ public final class DropLadderGameTests {
 
         player.setShiftKeyDown(true);
         for (int tick = 0; tick < 20; tick++) {
-            DropLadder.tick(player);
+            DropLadder.readSneakInput(player);
         }
 
         assertBlockIs(helper, TOP.below(), Blocks.LADDER, "The press must hang one ladder");
@@ -58,6 +64,59 @@ public final class DropLadderGameTests {
 
         assertBlockIs(
                 helper, TOP.below(2), Blocks.LADDER, "A new press must hang one more ladder");
+        finish(helper, player);
+    }
+
+    @GameTest
+    public void twoPressesInTheSameTickBothHang(GameTestHelper helper) {
+        ServerPlayer player = climbingPlayer(helper, new ItemStack(Items.LADDER, 4));
+
+        press(player);
+        press(player);
+
+        assertBlockIs(
+                helper,
+                TOP.below(2),
+                Blocks.LADDER,
+                "A release and the press behind it must not be read as no change at all");
+        finish(helper, player);
+    }
+
+    @GameTest
+    public void permissionToBreakDoesNotAuthorizePlacing(GameTestHelper helper) {
+        ServerPlayer player = climbingPlayer(helper, breakingStick(helper));
+        player.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(Items.LADDER, 4));
+        player.setGameMode(GameType.ADVENTURE);
+        helper.setBlock(TOP.below(), Blocks.SHORT_GRASS);
+
+        press(player);
+
+        assertBlockIs(
+                helper,
+                TOP.below(),
+                Blocks.SHORT_GRASS,
+                "Being allowed to break the obstruction must not grant the right to place");
+        helper.assertTrue(
+                player.getOffhandItem().getCount() == 4,
+                "A placement the player may not make must not cost a ladder");
+        finish(helper, player);
+    }
+
+    @GameTest
+    public void adventurePlacesOnlyWhatTheLadderIsAllowedOn(GameTestHelper helper) {
+        ServerPlayer player = climbingPlayer(helper, placeableLadders(helper));
+        player.setGameMode(GameType.ADVENTURE);
+
+        press(player);
+
+        assertBlockIs(
+                helper,
+                TOP.below(),
+                Blocks.LADDER,
+                "A ladder allowed on the ladder above it must hang in adventure mode");
+        helper.assertTrue(
+                player.getMainHandItem().getCount() == 3,
+                "An allowed placement must cost a ladder like any other");
         finish(helper, player);
     }
 
@@ -228,6 +287,27 @@ public final class DropLadderGameTests {
         finish(helper, player);
     }
 
+    /** A stick its holder may break short grass with, and nothing else. */
+    private static ItemStack breakingStick(GameTestHelper helper) {
+        ItemStack stick = new ItemStack(Items.STICK);
+        stick.set(DataComponents.CAN_BREAK, adventurePredicate(helper, Blocks.SHORT_GRASS));
+        return stick;
+    }
+
+    /** Ladders their holder may put against a ladder, and nothing else. */
+    private static ItemStack placeableLadders(GameTestHelper helper) {
+        ItemStack ladders = new ItemStack(Items.LADDER, 4);
+        ladders.set(DataComponents.CAN_PLACE_ON, adventurePredicate(helper, Blocks.LADDER));
+        return ladders;
+    }
+
+    private static AdventureModePredicate adventurePredicate(GameTestHelper helper, Block block) {
+        HolderLookup.RegistryLookup<Block> blocks =
+                helper.getLevel().registryAccess().lookupOrThrow(Registries.BLOCK);
+        return new AdventureModePredicate(
+                List.of(BlockPredicate.Builder.block().of(blocks, block).build()));
+    }
+
     private static BlockState ladderState() {
         return Blocks.LADDER.defaultBlockState().setValue(LadderBlock.FACING, Direction.NORTH);
     }
@@ -249,9 +329,9 @@ public final class DropLadderGameTests {
     /** A fresh press of the sneak key, released first so the transition is always a new one. */
     private static void press(ServerPlayer player) {
         player.setShiftKeyDown(false);
-        DropLadder.tick(player);
+        DropLadder.readSneakInput(player);
         player.setShiftKeyDown(true);
-        DropLadder.tick(player);
+        DropLadder.readSneakInput(player);
     }
 
     private static void assertBlockIs(
