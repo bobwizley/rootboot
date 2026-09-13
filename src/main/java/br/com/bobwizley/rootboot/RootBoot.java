@@ -16,6 +16,7 @@ import br.com.bobwizley.rootboot.feature.homingexperienceorb.HomingExperienceOrb
 import br.com.bobwizley.rootboot.feature.levelmilestone.LevelMilestoneFeature;
 import br.com.bobwizley.rootboot.feature.majoreventdiscovery.MajorEventDiscoveryFeature;
 import br.com.bobwizley.rootboot.feature.trimmedarmoredpiglins.TrimmedArmoredPiglinsFeature;
+import br.com.bobwizley.rootboot.feature.voidrescue.VoidRescueFeature;
 import br.com.bobwizley.rootboot.feature.timeoffset.TimeOffsetFeature;
 import br.com.bobwizley.rootboot.feature.timeoffset.TimeOffsetWorldInitializer;
 import br.com.bobwizley.rootboot.feature.heavyfoot.HeavyfootFeature;
@@ -68,6 +69,7 @@ public final class RootBoot implements ModInitializer {
                 new TrimmedArmoredPiglinsFeature(),
                 new ExtraLoyalTridentsFeature(),
                 new DropLadderFeature(),
+                new VoidRescueFeature(),
                 new HeavyfootFeature(cfg.heavyfootRadius()),
                 new LightfootFeature()));
         if (cfg.ensureKeys(registry.featureIds())) {

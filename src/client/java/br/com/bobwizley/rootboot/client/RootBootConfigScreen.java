@@ -21,6 +21,7 @@ import br.com.bobwizley.rootboot.feature.lightfoot.LightfootFeature;
 import br.com.bobwizley.rootboot.feature.majoreventdiscovery.MajorEventDiscoveryFeature;
 import br.com.bobwizley.rootboot.feature.timeoffset.TimeOffsetFeature;
 import br.com.bobwizley.rootboot.feature.trimmedarmoredpiglins.TrimmedArmoredPiglinsFeature;
+import br.com.bobwizley.rootboot.feature.voidrescue.VoidRescueFeature;
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
@@ -153,6 +154,14 @@ public final class RootBootConfigScreen {
                 .setDefaultValue(true)
                 .setTooltip(Component.translatable("option.rootboot.drop_ladder.tooltip"))
                 .setSaveConsumer(value -> config.setEnabled(DropLadderFeature.ID, value))
+                .build());
+
+        general.addEntry(entries.startBooleanToggle(
+                        Component.translatable("option.rootboot.void_rescue"),
+                        config.isEnabled(VoidRescueFeature.ID))
+                .setDefaultValue(true)
+                .setTooltip(Component.translatable("option.rootboot.void_rescue.tooltip"))
+                .setSaveConsumer(value -> config.setEnabled(VoidRescueFeature.ID, value))
                 .build());
 
         general.addEntry(entries.startBooleanToggle(

@@ -16,7 +16,8 @@
       "br.com.bobwizley.rootboot.feature.majoreventdiscovery.MajorEventDiscoveryGameTests",
       "br.com.bobwizley.rootboot.feature.heavyfoot.HeavyfootGameTests",
       "br.com.bobwizley.rootboot.feature.lightfoot.LightfootGameTests",
-      "br.com.bobwizley.rootboot.feature.trimmedarmoredpiglins.TrimmedArmoredPiglinsGameTests"
+      "br.com.bobwizley.rootboot.feature.trimmedarmoredpiglins.TrimmedArmoredPiglinsGameTests",
+      "br.com.bobwizley.rootboot.feature.voidrescue.VoidRescueGameTests"
     ]
   },
   "depends": {
